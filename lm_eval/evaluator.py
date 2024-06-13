@@ -204,6 +204,7 @@ def simple_evaluate(
         eval_logger.info("Using pre-initialized model")
         lm = model
     
+    print(model)
     if use_cache is not None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
         lm = lm_eval.api.model.CachingLM(
