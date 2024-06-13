@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 @positional_deprecated
 def simple_evaluate(
     model,
+    pretrained_model=None,
     model_args: Optional[Union[str, dict]] = None,
     tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
@@ -204,7 +205,10 @@ def simple_evaluate(
         eval_logger.info("Using pre-initialized model")
         lm = model
     
-    print(model)
+    
+    if pretrained_model is not None:
+        lm = pretrained_model
+
     if use_cache is not None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
         lm = lm_eval.api.model.CachingLM(
@@ -370,7 +374,7 @@ def evaluate(
     :return
         Dictionary of results
     """
-
+    captured_examples = []
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     # tracks all Instances/requests a model must generate output on.
@@ -446,10 +450,22 @@ def evaluate(
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
+            # Capture the details
+            captured_examples.append({
+                'question': req.question,
+                'choices': req.choices,
+                'correct_answer': req.correct_answer,
+                'model_response': x
+            })
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
 
+    # Save captured examples to a file for analysis
+    with open('captured_examples.json', 'w') as f:
+        json.dump(captured_examples, f, indent=4)
+
+    print(f"Captured {len(captured_examples)} examples.")
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###

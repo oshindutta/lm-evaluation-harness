@@ -1286,6 +1286,9 @@ class ConfigurableTask(Task):
                     doc=doc,
                     arguments=arg,
                     idx=i,
+                    question=self.doc_to_text(doc),
+                    choices=choices,
+                    correct_answer=self.doc_to_target(doc),
                     **kwargs,
                 )
                 for i, arg in enumerate(arguments)
@@ -1305,6 +1308,9 @@ class ConfigurableTask(Task):
                             doc=doc,
                             arguments=("", "{}".format(choice)),
                             idx=i,
+                            question=self.doc_to_text(doc),
+                            choices=choices,
+                            correct_answer=self.doc_to_target(doc),
                             **kwargs,
                         )
                         for i, choice in enumerate(choices)
