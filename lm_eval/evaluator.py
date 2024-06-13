@@ -189,15 +189,15 @@ def simple_evaluate(
             eval_logger.info(
                 f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
             )
-            # lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            #     model_args,
-            #     {
-            #         "batch_size": batch_size,
-            #         "max_batch_size": max_batch_size,
-            #         "device": device,
-            #     },
-            # )
-            lm=model
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
+        
     else:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError
