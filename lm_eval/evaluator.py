@@ -451,21 +451,36 @@ def evaluate(
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
             # Capture the details
-            captured_examples.append({
-                'question': req.question,
-                'choices': req.choices,
-                'correct_answer': req.correct_answer,
-                'model_response': x
-            })
+            if write_out:
+                # Determine the response with the highest log-likelihood
+                #if req.request_type == "multiple_choice":
+                log_likelihoods = [resp[0] for resp in req.resps]  # Assuming log-likelihood is the first element
+                best_choice_index = log_likelihoods.index(max(log_likelihoods))
+                best_choice = req.choices[best_choice_index]
+                
+                # Capture the details
+                captured_examples.append({
+                    'question': req.question,
+                    'choices': req.choices,
+                    'correct_answer': req.correct_answer,
+                    'model_response': best_choice
+                })
+                # captured_examples.append({
+                #     'question': req.question,
+                #     'choices': req.choices,
+                #     'correct_answer': req.correct_answer,
+                #     'model_response': x
+                # })
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
 
     # Save captured examples to a file for analysis
-    with open('captured_examples.json', 'w') as f:
-        json.dump(captured_examples, f, indent=4)
+    if write_out:
+        with open('captured_examples.json', 'w') as f:
+            json.dump(captured_examples, f, indent=4)
 
-    print(f"Captured {len(captured_examples)} examples.")
+        print(f"Captured {len(captured_examples)} examples.")
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
