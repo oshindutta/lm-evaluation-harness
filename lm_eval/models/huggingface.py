@@ -362,6 +362,9 @@ class HFLM(TemplateLM):
     def config(self):
         # return the associated transformers.AutoConfig for the given pretrained model.
         return self._config
+    
+    def set_model(self, model):
+        self.model=model
 
     @property
     def model(self):
