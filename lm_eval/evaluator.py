@@ -207,9 +207,9 @@ def simple_evaluate(
     
     
     if pretrained_model is not None:
-        lm._set_model(pretrained_model)
+        lm.model = pretrained_model
         lm.rank=0
-        lm.world_size=0
+        lm.world_size=1
 
     if use_cache is not None:
         eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
@@ -410,7 +410,7 @@ def evaluate(
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
-        if write_out:
+        if write_out is True:
             print_writeout(task)
         # aggregate Instances by LM method requested to get output.
         for instance in task.instances:
@@ -453,13 +453,12 @@ def evaluate(
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
             # Capture the details
-            if write_out:
+            if write_out is True:
                 # Determine the response with the highest log-likelihood
                 #if req.request_type == "multiple_choice":
                 log_likelihoods = [resp[0] for resp in req.resps]  # Assuming log-likelihood is the first element
                 best_choice_index = log_likelihoods.index(max(log_likelihoods))
                 best_choice = req.choices[best_choice_index]
-                
                 # Capture the details
                 captured_examples.append({
                     'question': req.question,
@@ -478,7 +477,7 @@ def evaluate(
             lm.accelerator.wait_for_everyone()
 
     # Save captured examples to a file for analysis
-    if write_out:
+    if write_out is True:
         with open('captured_examples.json', 'w') as f:
             json.dump(captured_examples, f, indent=4)
 
